@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PayFast Test</title>
+<style>
+  body { font-family: sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; }
+  h2 { color: #1C3320; }
+  .btn { background: #2E7D42; color: white; padding: 16px 32px; font-size: 18px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 20px; }
+  .btn:hover { background: #1C3320; }
+  p { color: #666; font-size: 14px; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <h2>PayFast Direct Test</h2>
+  <p>This page submits directly to PayFast with no JavaScript. If this works, the issue is in the main site code. If this also fails, the issue is with the PayFast account.</p>
+
+  <form method="POST" action="https://www.payfast.co.za/eng/process">
+    <input type="hidden" name="merchant_id" value="34836001">
+    <input type="hidden" name="merchant_key" value="cotzn6ghidlyg">
+    <input type="hidden" name="return_url" value="https://ezioptx.co.za/thank-you.html">
+    <input type="hidden" name="cancel_url" value="https://ezioptx.co.za">
+    <input type="hidden" name="item_name" value="Test Payment">
+    <input type="hidden" name="amount" value="1.00">
+    <button type="submit" class="btn">Pay R1.00 via PayFast →</button>
+  </form>
+
+  <p>After clicking, you should be taken directly to the PayFast payment page. No JavaScript involved.</p>
+</body>
+</html>
