@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EziOptx — Stick-On Corrective Lenses | Optical Innovation for Serious Sports People</title>
-<meta name="description" content="EziOptx stick-on bifocal and myopia lenses transform any glasses in seconds. No prescription needed. Free delivery across South Africa on orders over R395. Used by cyclists, divers, skiers and serious sports people.">
+<meta name="description" content="EziOptx stick-on bifocal and myopia lenses transform any glasses in seconds. No prescription needed. Free courier delivery across South Africa on orders over R395. Used by cyclists, divers, skiers and serious sports people.">
 <meta name="keywords" content="stick on bifocal lenses south africa, stick on myopia lenses, reading glasses sport, bifocal lenses cycling, myopia lenses diving, EziOptx, optical lenses south africa, stick on reading lenses, sports bifocal lenses, myopia goggles south africa, pince nez reading glasses">
 <meta name="author" content="EziOptx">
 <meta name="robots" content="index, follow">
@@ -17,7 +17,7 @@
 
 <!-- Open Graph / Social sharing -->
 <meta property="og:title" content="EziOptx — Optical Innovation for Serious Sports People">
-<meta property="og:description" content="Transform any glasses into bifocal or myopia lenses in seconds. No prescription needed. Free delivery in SA over R395.">
+<meta property="og:description" content="Transform any glasses into bifocal or myopia lenses in seconds. No prescription needed. Free courier delivery in SA over R395.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ezioptx.co.za">
 <meta property="og:image" content="https://ezioptx.co.za/cyclist_with_ezi_bifocals.png">
@@ -302,7 +302,7 @@
 </head>
 <body>
 
-<div class="ann-bar">Free delivery on all orders over R395 anywhere in South Africa.<a href="#products">Shop now →</a></div>
+<div class="ann-bar" id="ann-bar">Free courier delivery on all orders over R395 anywhere in South Africa.<a href="#products">Shop now →</a></div>
 
 <nav class="nav">
   <a href="/"><img src="logo.png" alt="EziOptx" style="height:34px;width:auto;"></a>
@@ -335,7 +335,7 @@
       <div class="hero-stat-divider"></div>
       <div>
         <div class="hero-stat-num">R395</div>
-        <div class="hero-stat-label">Free delivery threshold</div>
+        <div class="hero-stat-label">Free courier delivery threshold</div>
       </div>
       <div class="hero-stat-divider"></div>
       <div>
@@ -355,7 +355,7 @@
 <div class="trust">
   <div class="trust-item">
     <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg>
-    Free delivery over R395
+    Free courier delivery over R395
   </div>
   <div class="trust-item">
     <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -703,6 +703,14 @@
       <span class="modal-price" id="cart-total" style="margin:0;font-size:24px;"></span>
     </div>
     <div class="del-note" id="cart-del-note" style="margin-bottom:16px;font-size:12px;font-weight:500;"></div>
+
+    <!-- FREE GIFT (spring promotion) -->
+    <div id="gift-block" style="display:none;background:var(--blue-pale);border:1px solid var(--border);border-radius:5px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;">🎁 You've unlocked a free pair of Red Mobile Phone Readers (orders over R495)!</div>
+      <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:5px;">Choose your strength</label>
+      <select id="gift-diopter" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:13px;color:var(--ink);background:#fff;"></select>
+    </div>
+
     <button onclick="closeCheckout()" style="width:100%;background:var(--offwhite);color:var(--ink-mid);font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:11px;border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-bottom:20px;">← Add more items</button>
 
     <!-- DELIVERY FORM -->
@@ -771,6 +779,13 @@
 <!-- PayFast form built dynamically in handleOrder() -->
 
 <script>
+// ── SPRING PROMOTION CONFIG ──
+// To end the promotion (once red reader stock runs out), just set PROMO_ACTIVE to false.
+// This one flag controls the announcement bar text AND the free-gift checkout logic below.
+var PROMO_ACTIVE = true;
+var PROMO_THRESHOLD = 495; // separate from the R395 free-delivery threshold — gift only unlocks on bigger baskets
+var PROMO_GIFT_STRENGTHS = ['+1.00', '+2.00', '+3.00'];
+
 // ── PRODUCT DEFINITIONS ──
 var products = {
   bifocal: { name:'Bifocal Stick-On Lenses', price:199, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false },
@@ -874,11 +889,32 @@ function renderCartItems() {
   var courier = total >= 395 ? 0 : 99;
   var grand = total + courier;
   document.getElementById('cart-total').textContent = 'R' + grand.toFixed(2);
-  document.getElementById('cart-total-label').textContent = courier > 0 ? 'Total (incl. R99 courier)' : 'Total (free delivery)';
+  document.getElementById('cart-total-label').textContent = courier > 0 ? 'Total (incl. R99 courier)' : 'Total (free courier delivery)';
   var n = document.getElementById('cart-del-note');
-  if (courier === 0) { n.innerHTML = '✓ Free delivery included!'; n.style.color = '#166534'; }
-  else { n.innerHTML = 'Includes R99 courier fee &nbsp;·&nbsp; Add R' + (395 - total).toFixed(0) + ' more for free delivery.'; n.style.color = '#6b7f90'; }
+  if (courier === 0) { n.innerHTML = '✓ Free courier delivery included!'; n.style.color = '#166534'; }
+  else { n.innerHTML = 'Includes R99 courier fee &nbsp;·&nbsp; Add R' + (395 - total).toFixed(0) + ' more for free courier delivery.'; n.style.color = '#6b7f90'; }
+
+  // ── FREE GIFT (spring promotion) ──
+  var giftBlock = document.getElementById('gift-block');
+  if (PROMO_ACTIVE && total >= PROMO_THRESHOLD) {
+    var sel = document.getElementById('gift-diopter');
+    if (!sel.options.length) {
+      PROMO_GIFT_STRENGTHS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+    }
+    giftBlock.style.display = 'block';
+  } else {
+    giftBlock.style.display = 'none';
+  }
 }
+
+function initPromo() {
+  if (!PROMO_ACTIVE) return;
+  var bar = document.getElementById('ann-bar');
+  if (bar) {
+    bar.innerHTML = 'Spring offer: free courier delivery on orders over R395, plus a free pair of Red Mobile Phone Readers on orders over R495.<a href="#products">Shop now →</a>';
+  }
+}
+initPromo();
 
 function removeFromCart(idx) {
   cart.splice(idx, 1);
@@ -908,6 +944,9 @@ function handleOrder(e) {
   var total      = cartTotal();
   var courier    = total >= 395 ? 0 : 99;
   var grandTotal = total + courier;
+
+  var giftEarned = PROMO_ACTIVE && total >= PROMO_THRESHOLD;
+  var giftDiopter = giftEarned ? document.getElementById('gift-diopter').value : '';
 
   var itemNames  = cart.map(function(i){
     return i.label + (i.qty > 1 ? ' x' + i.qty : '');
@@ -954,10 +993,11 @@ function handleOrder(e) {
     return i.label + ' x' + i.qty + ' = R' + (i.price * i.qty).toFixed(2);
   }).join(' | ');
   if (courier > 0) cartSummary += ' | Courier fee = R99.00';
+  if (giftEarned) cartSummary += ' | 🎁 FREE GIFT: Red Mobile Phone Readers ' + giftDiopter + ' (spring promo, R0.00)';
 
   var formspreeData = {
     '🛒 ORDER SUMMARY': cartSummary,
-    '💰 TOTAL': 'R' + grandTotal.toFixed(2) + (courier === 0 ? ' (free delivery)' : ' (incl. R99 courier)'),
+    '💰 TOTAL': 'R' + grandTotal.toFixed(2) + (courier === 0 ? ' (free courier delivery)' : ' (incl. R99 courier)'),
     '👤 Name': name,
     '📧 Email': email,
     '📱 Phone': phone,
