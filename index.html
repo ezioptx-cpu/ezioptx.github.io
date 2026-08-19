@@ -59,7 +59,7 @@
       "@type": "Offer",
       "name": "Bifocal Stick-On Lenses",
       "description": "Stick-on bifocal lenses that transform any glasses into reading glasses. Available in +1.50, +2.00, +2.50 and +3.00.",
-      "price": "199",
+      "price": "229",
       "priceCurrency": "ZAR",
       "availability": "https://schema.org/InStock",
       "url": "https://ezioptx.co.za/#bifocal"
@@ -302,7 +302,7 @@
 </head>
 <body>
 
-<div class="ann-bar" id="ann-bar">Free courier delivery on all orders over R395 anywhere in South Africa.<a href="#products">Shop now →</a></div>
+<div class="ann-bar" id="ann-bar">Free courier delivery on all orders over R395 anywhere in South Africa.* <a href="#products">Shop now →</a></div>
 
 <nav class="nav">
   <a href="/"><img src="logo.png" alt="EziOptx" style="height:34px;width:auto;"></a>
@@ -355,7 +355,7 @@
 <div class="trust">
   <div class="trust-item">
     <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg>
-    Free courier delivery over R395
+    Free courier delivery over R395*
   </div>
   <div class="trust-item">
     <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -374,6 +374,7 @@
     Wholesale accounts welcome
   </div>
 </div>
+<div style="text-align:center;font-size:11px;color:var(--ink-faint);padding:4px 5vw 0;">*Outlying areas may incur a delivery surcharge, calculated automatically at checkout based on your address.</div>
 
 <!-- PRODUCTS -->
 <section class="section" id="products">
@@ -395,8 +396,8 @@
         <div class="str-label">Available strengths</div>
         <div class="pills"><span class="pill">+1.50</span><span class="pill">+2.00</span><span class="pill">+2.50</span><span class="pill">+3.00</span></div>
         <div class="product-footer">
-          <div class="product-price">R199</div>
-          <button class="buy-btn" onclick="openModal('Bifocal Stick-On Lenses',199,'bifocal')">Buy Now</button>
+          <div class="product-price">R229</div>
+          <button class="buy-btn" onclick="openModal('Bifocal Stick-On Lenses',229,'bifocal')">Buy Now</button>
         </div>
       </div>
     </div>
@@ -754,7 +755,7 @@
       <div class="f2">
         <div class="frow">
           <label>City / Town <span class="req">*</span></label>
-          <input type="text" name="city" id="f-city" required placeholder="City or town">
+          <input type="text" name="city" id="f-city" required placeholder="City or town" oninput="renderCartItems()">
         </div>
         <div class="frow">
           <label>Postal code <span class="req">*</span></label>
@@ -786,9 +787,42 @@ var PROMO_ACTIVE = true;
 var PROMO_THRESHOLD = 495; // separate from the R395 free-delivery threshold — gift only unlocks on bigger baskets
 var PROMO_GIFT_STRENGTHS = ['+1.00', '+2.00', '+3.00'];
 
+// ── OUTLYING AREA COURIER SURCHARGE ──
+// Permanent pricing fix (not part of the spring promo) — courier costs to outlying towns run well above
+// the R99 standard fee (e.g. Hoedspruit actually cost R206). This adds an automatic surcharge for any
+// city/town NOT in MAIN_CENTRES below. Review and edit this list — you know your courier's actual rate
+// card better than this default does. Matching is loose (partial match, case-insensitive) to tolerate
+// how people actually type their town.
+var OUTLYING_SURCHARGE_ACTIVE = true;
+var OUTLYING_SURCHARGE = 110; // covers the ~R107 shortfall seen on the Hoedspruit order, plus a small buffer
+var MAIN_CENTRES = [
+  // Confirmed via actual Fastway rate lookups (LOC/ISH/SHP/LMC service levels) — 17 Aug 2026 test batch
+  'johannesburg','sandton','pretoria','centurion','vereeniging','cape town','stellenbosch',
+  'george','knysna','durban','pietermaritzburg','richards bay','bloemfontein','welkom',
+  'polokwane','louis trichardt','nelspruit','mbombela','witbank','rustenburg','klerksdorp',
+  'potchefstroom','plettenberg bay','mossel bay','jeffreys bay','port elizabeth','gqeberha','east london',
+  // Not individually tested, but same metro/postal region as a confirmed town above
+  'joburg','randburg','roodepoort','midrand','tshwane','germiston','benoni','boksburg',
+  'kempton park','edenvale','alberton','vanderbijlpark','bellville','durbanville',
+  'somerset west','paarl','umhlanga','pinetown','emalahleni'
+  // NOTE: Port Elizabeth/Gqeberha and East London added based on real invoice experience and industry
+  // reference sources, overriding what the API test batch showed (East London tested as outlying/HRK;
+  // PE failed to geocode). Deliberate call: err toward treating borderline towns as main centres rather
+  // than risk surprising a genuine main-centre customer with a surcharge at checkout — a false "outlying"
+  // is worse for the business than the occasional underpriced delivery.
+  // Soweto and Worcester were TESTED and clearly came back as outlying (HRK tier) — left OFF this list.
+  // Uitenhage and Queenstown are still unconfirmed and default to outlying until there's real order data.
+];
+function isOutlyingCity(cityStr) {
+  if (!OUTLYING_SURCHARGE_ACTIVE) return false;
+  var c = (cityStr || '').trim().toLowerCase();
+  if (!c) return false; // don't guess before they've typed a city
+  return !MAIN_CENTRES.some(function(mc){ return c.indexOf(mc) > -1 || mc.indexOf(c) > -1; });
+}
+
 // ── PRODUCT DEFINITIONS ──
 var products = {
-  bifocal: { name:'Bifocal Stick-On Lenses', price:199, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false },
+  bifocal: { name:'Bifocal Stick-On Lenses', price:229, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false },
   myopia:  { name:'Myopia Stick-On Lenses',  price:299, strengths:['-2.00','-2.50','-3.00','-3.50','-4.00','-5.00'], hasColour:false },
   readers: { name:'Mobile Phone Readers',    price:199, strengths:['+1.00','+2.00','+3.00'], hasColour:true }
 };
@@ -887,12 +921,16 @@ function renderCartItems() {
   document.getElementById('cart-items-display').innerHTML = html;
   var total = cartTotal();
   var courier = total >= 395 ? 0 : 99;
-  var grand = total + courier;
+  var cityVal = document.getElementById('f-city') ? document.getElementById('f-city').value : '';
+  var outlying = isOutlyingCity(cityVal);
+  var surcharge = outlying ? OUTLYING_SURCHARGE : 0;
+  var grand = total + courier + surcharge;
   document.getElementById('cart-total').textContent = 'R' + grand.toFixed(2);
   document.getElementById('cart-total-label').textContent = courier > 0 ? 'Total (incl. R99 courier)' : 'Total (free courier delivery)';
   var n = document.getElementById('cart-del-note');
   if (courier === 0) { n.innerHTML = '✓ Free courier delivery included!'; n.style.color = '#166534'; }
   else { n.innerHTML = 'Includes R99 courier fee &nbsp;·&nbsp; Add R' + (395 - total).toFixed(0) + ' more for free courier delivery.'; n.style.color = '#6b7f90'; }
+  if (outlying) { n.innerHTML += '<br>+ R' + OUTLYING_SURCHARGE.toFixed(0) + ' outlying area delivery surcharge (based on ' + cityVal.trim() + ')'; }
 
   // ── FREE GIFT (spring promotion) ──
   var giftBlock = document.getElementById('gift-block');
@@ -911,7 +949,7 @@ function initPromo() {
   if (!PROMO_ACTIVE) return;
   var bar = document.getElementById('ann-bar');
   if (bar) {
-    bar.innerHTML = 'Spring offer: free courier delivery on orders over R395, plus a free pair of Red Mobile Phone Readers on orders over R495.<a href="#products">Shop now →</a>';
+    bar.innerHTML = 'Spring offer: free courier delivery on orders over R395, plus a free pair of Red Mobile Phone Readers on orders over R495.* <a href="#products">Shop now →</a>';
   }
 }
 initPromo();
@@ -943,7 +981,9 @@ function handleOrder(e) {
 
   var total      = cartTotal();
   var courier    = total >= 395 ? 0 : 99;
-  var grandTotal = total + courier;
+  var outlying   = isOutlyingCity(city);
+  var surcharge  = outlying ? OUTLYING_SURCHARGE : 0;
+  var grandTotal = total + courier + surcharge;
 
   var giftEarned = PROMO_ACTIVE && total >= PROMO_THRESHOLD;
   var giftDiopter = giftEarned ? document.getElementById('gift-diopter').value : '';
@@ -993,6 +1033,7 @@ function handleOrder(e) {
     return i.label + ' x' + i.qty + ' = R' + (i.price * i.qty).toFixed(2);
   }).join(' | ');
   if (courier > 0) cartSummary += ' | Courier fee = R99.00';
+  if (outlying) cartSummary += ' | ⚠️ Outlying area surcharge = R' + surcharge.toFixed(2);
   if (giftEarned) cartSummary += ' | 🎁 FREE GIFT: Red Mobile Phone Readers ' + giftDiopter + ' (spring promo, R0.00)';
 
   var formspreeData = {
@@ -1005,7 +1046,7 @@ function handleOrder(e) {
     '📍 Address 1': address,
     '📍 Address 2': address2 || '-',
     '🏘️ Suburb': suburb || '-',
-    '🌆 City': city2,
+    '🌆 City': city2 + (outlying ? ' (⚠️ OUTLYING — R' + surcharge.toFixed(2) + ' surcharge applied)' : ''),
     '📮 Postal Code': postal2,
     '📝 Notes': notes || '-'
   };
