@@ -154,7 +154,7 @@
 
   /* ─── TRUST BAR ─── */
   .trust { background: var(--offwhite); border-bottom: 1px solid var(--border); padding: 12px 5vw; display: flex; flex-wrap: wrap; align-items: center; }
-  .trust-item { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--ink-mid); white-space: nowrap; padding: 4px 18px; border-right: 1px solid var(--border); min-width: 140px; }
+  .trust-item { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--ink-mid); padding: 4px 18px; border-right: 1px solid var(--border); min-width: 140px; }
   .trust-item:first-child { padding-left: 0; }
   .trust-item:last-child { border-right: none; }
   .trust-icon { width: 16px; height: 16px; color: var(--blue); flex-shrink: 0; }
@@ -297,7 +297,8 @@
     .product-grid { grid-template-columns: 1fr; }
     .hero-right { display: block; min-height: 260px; }
     .footer-top { grid-template-columns: 1fr; }
-    .trust-item { min-width: 120px; font-size: 11px; }
+    .trust-item { flex: 1 1 100%; min-width: 0; font-size: 11px; border-right: none; border-bottom: 1px solid var(--border); padding: 8px 0; }
+    .trust-item:last-child { border-bottom: none; }
     .hero-stats { gap: 18px; }
   }
 </style>
