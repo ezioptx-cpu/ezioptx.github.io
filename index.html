@@ -180,7 +180,7 @@
   .product-badge { position: absolute; top: 12px; left: 12px; background: var(--blue); color: var(--white); font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; z-index: 3; }
   .zoom-hint { position: absolute; bottom: 10px; right: 10px; background: rgba(27,39,51,0.72); color: #fff; font-size: 10.5px; font-weight: 500; padding: 4px 9px; border-radius: 20px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 3; }
   .product-img:hover .zoom-hint { opacity: 1; }
-  @media (hover: none) { .zoom-hint { opacity: 0.85; } }
+  @media (hover: none) { .zoom-hint { opacity: 1; background: rgba(27,39,51,0.85); font-weight: 600; } }
   .product-body { padding: 20px; flex: 1; display: flex; flex-direction: column; background: var(--offwhite); }
   .product-name { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
   .product-desc { font-size: 13px; color: var(--ink-light); line-height: 1.65; margin-bottom: 16px; flex: 1; }
@@ -392,7 +392,7 @@
   <div class="product-grid">
 
     <div class="product-card" id="bifocal">
-      <div class="product-img" onclick="openLightbox('bifocal-product.png','What you get: EziOptx +3.00 stick-on bifocal lenses, packaging and lens detail')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('bifocal-product.png','What you get: EziOptx stick-on bifocal lenses — packaging and lens pair shown (photo for illustration; you receive the strength you select above)')" style="cursor:zoom-in;">
         <div class="product-badge">Best Seller</div>
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="diopters.png" alt="EziOptx bifocal stick-on lenses - all strengths shown">
@@ -410,7 +410,7 @@
     </div>
 
     <div class="product-card" id="myopia">
-      <div class="product-img" onclick="openLightbox('myopia-product.jpg','What you get: EziOptx -5.00 stick-on myopia lenses in travel case')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('myopia-product.jpg','What you get: EziOptx stick-on myopia lenses in travel case (photo for illustration; you receive the strength you select above)')" style="cursor:zoom-in;">
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="All.png" alt="EziOptx myopia stick-on lenses - full range of strengths">
       </div>
@@ -427,7 +427,7 @@
     </div>
 
     <div class="product-card" id="readers">
-      <div class="product-img" onclick="openLightbox('readers-product.jpg','What you get: EziOptx mobile phone readers folded flat')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('readers-product.jpg','What you get: EziOptx mobile phone readers, shown folded and unfolded on a phone for scale — phone not included')" style="cursor:zoom-in;">
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="111_.png" alt="EziOptx mobile phone readers - compact reading glasses for your phone" class="readers-img">
       </div>
