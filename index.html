@@ -392,7 +392,7 @@
   <div class="product-grid">
 
     <div class="product-card" id="bifocal">
-      <div class="product-img" onclick="openLightbox('bifocal-product.png','What you get: EziOptx stick-on bifocal lenses — packaging and lens pair shown (photo for illustration; you receive the strength you select above)')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('bifocal')" style="cursor:zoom-in;">
         <div class="product-badge">Best Seller</div>
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="diopters.png" alt="EziOptx bifocal stick-on lenses - all strengths shown">
@@ -410,7 +410,7 @@
     </div>
 
     <div class="product-card" id="myopia">
-      <div class="product-img" onclick="openLightbox('myopia-product.jpg','What you get: EziOptx stick-on myopia lenses in travel case (photo for illustration; you receive the strength you select above)')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('myopia')" style="cursor:zoom-in;">
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="All.png" alt="EziOptx myopia stick-on lenses - full range of strengths">
       </div>
@@ -427,7 +427,7 @@
     </div>
 
     <div class="product-card" id="readers">
-      <div class="product-img" onclick="openLightbox('readers-product.jpg','What you get: EziOptx mobile phone readers, shown folded and unfolded on a phone for scale — phone not included')" style="cursor:zoom-in;">
+      <div class="product-img" onclick="openLightbox('readers')" style="cursor:zoom-in;">
         <div class="zoom-hint">🔍 See what's in the box</div>
         <img src="111_.png" alt="EziOptx mobile phone readers - compact reading glasses for your phone" class="readers-img">
       </div>
@@ -701,10 +701,17 @@
 
 <!-- ── CHECKOUT MODAL ── -->
 <div class="modal-overlay" id="lightbox-modal">
-  <div style="max-width:90vw;max-height:90vh;position:relative;" onclick="event.stopPropagation()">
-    <button onclick="closeLightbox()" aria-label="Close" style="position:absolute;top:-38px;right:0;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;line-height:1;">×</button>
-    <img id="lightbox-img" src="" alt="" style="max-width:90vw;max-height:80vh;border-radius:6px;display:block;">
-    <div id="lightbox-caption" style="text-align:center;color:#fff;font-size:13px;font-weight:500;margin-top:10px;"></div>
+  <div style="max-width:480px;width:92vw;max-height:88vh;overflow-y:auto;background:var(--white);border-radius:10px;position:relative;" onclick="event.stopPropagation()">
+    <button onclick="closeLightbox()" aria-label="Close" style="position:absolute;top:10px;right:10px;background:rgba(20,30,40,0.55);color:#fff;border:none;width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;z-index:2;display:flex;align-items:center;justify-content:center;">×</button>
+    <img id="lightbox-img" src="" alt="" style="width:100%;max-height:240px;object-fit:contain;background:var(--white);display:block;border-radius:10px 10px 0 0;">
+    <div style="padding:20px 22px 24px;">
+      <h3 id="lightbox-title" style="font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--ink);margin:0 0 6px;"></h3>
+      <p id="lightbox-tagline" style="font-size:13.5px;color:var(--ink-mid);line-height:1.55;margin:0 0 14px;"></p>
+      <ul id="lightbox-benefits" style="margin:0 0 16px;padding-left:19px;font-size:13px;color:var(--ink-mid);line-height:1.65;"></ul>
+      <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);margin-bottom:7px;">What's in the box</div>
+      <ul id="lightbox-inbox" style="margin:0 0 14px;padding-left:19px;font-size:13px;color:var(--ink-mid);line-height:1.65;"></ul>
+      <div id="lightbox-note" style="font-size:11px;color:var(--ink-faint);font-style:italic;line-height:1.4;"></div>
+    </div>
   </div>
 </div>
 
@@ -864,10 +871,66 @@ function updateCartBubble() {
 }
 
 // ── ADD TO CART MODAL ──
-function openLightbox(src, alt) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-img').alt = alt;
-  document.getElementById('lightbox-caption').textContent = alt;
+var LIGHTBOX_CONTENT = {
+  bifocal: {
+    img: 'bifocal-product.png',
+    imgAlt: 'EziOptx stick-on bifocal lenses, packaging and lens pair (photo for illustration)',
+    title: 'EziOptx Stick-On Bifocal Lenses',
+    tagline: 'Ultra-thin, pliable lenses made from liquid silicone that stick onto any eyewear with a single drop of water — optically correct magnification without prescription readers.',
+    benefits: [
+      'Just one drop of water to adhere — no glue, no mess',
+      'Removable and reusable',
+      'Can be trimmed to size for a custom fit',
+      'Leaves no residue when removed',
+      'A smart, affordable alternative to prescription readers'
+    ],
+    inBox: ['Stick-on bifocal lenses (your selected strength)', 'Black pod case', 'Use instructions'],
+    note: "Photo shown for illustration of packaging and lens pair — you'll receive the strength you select above, not necessarily the one pictured."
+  },
+  myopia: {
+    img: 'myopia-product.jpg',
+    imgAlt: 'EziOptx stick-on myopia lenses in travel case (photo for illustration)',
+    title: 'EziOptx Stick-On Myopia Lenses',
+    tagline: 'Ultra-thin, pliable lenses made from liquid silicone that stick onto any eyewear with a single drop of water — optically correct magnification for nearsightedness.',
+    benefits: [
+      'Just one drop of water to adhere — no glue, no mess',
+      'Removable and reusable',
+      'Can be trimmed to size for a custom fit',
+      'Leaves no residue when removed',
+      'A smart, affordable alternative to prescription eyewear'
+    ],
+    inBox: ['Stick-on myopia lenses (your selected strength)', 'Transparent pod case', 'Use instructions'],
+    note: "Photo shown for illustration of packaging and lens pair — you'll receive the strength you select above, not necessarily the one pictured."
+  },
+  readers: {
+    img: 'readers-product.jpg',
+    imgAlt: 'EziOptx mobile phone readers shown on a phone for scale, phone not included',
+    title: 'EziOptx Mobile Phone Readers',
+    tagline: "The original EziOptics reading glasses, in a slim, light black soft-touch case that sticks to your phone — no arms or temples, just a gentle pince-nez grip at the bridge of your nose.",
+    benefits: [
+      'Ultra-slim design, made to take up no space at all',
+      'Silicone nose-grips are removable for easy cleaning',
+      'Made to fit all noses',
+      'Convenient, lightweight and practical for everyday use'
+    ],
+    inBox: ["EziOptx reading glasses (your selected strength)", "Black 'soft touch' pod case", '3M adhesive tape', 'Use & care instructions'],
+    note: "Photo for illustration — phone shown for scale only, not included."
+  }
+};
+function openLightbox(type) {
+  var c = LIGHTBOX_CONTENT[type];
+  if (!c) return;
+  document.getElementById('lightbox-img').src = c.img;
+  document.getElementById('lightbox-img').alt = c.imgAlt;
+  document.getElementById('lightbox-title').textContent = c.title;
+  document.getElementById('lightbox-tagline').textContent = c.tagline;
+  var benefitsUl = document.getElementById('lightbox-benefits');
+  benefitsUl.innerHTML = '';
+  c.benefits.forEach(function(b){ var li = document.createElement('li'); li.textContent = b; benefitsUl.appendChild(li); });
+  var inboxUl = document.getElementById('lightbox-inbox');
+  inboxUl.innerHTML = '';
+  c.inBox.forEach(function(b){ var li = document.createElement('li'); li.textContent = b; inboxUl.appendChild(li); });
+  document.getElementById('lightbox-note').textContent = c.note;
   document.getElementById('lightbox-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
