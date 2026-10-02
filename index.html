@@ -750,6 +750,16 @@
         <label>Full name <span class="req">*</span></label>
         <input type="text" name="name" id="f-name" required placeholder="Your full name">
       </div>
+      <div class="frow">
+        <label>Country <span class="req">*</span></label>
+        <select name="country" id="f-country" required onchange="checkCountry()">
+          <option value="South Africa" selected>South Africa</option>
+          <option value="Other">Outside South Africa</option>
+        </select>
+      </div>
+      <div id="country-block-msg" style="display:none;background:#fdecea;border:1px solid #f3b4ab;color:#8a2a1e;font-size:13px;line-height:1.5;padding:10px 12px;border-radius:5px;margin:-4px 0 14px;">
+        Sorry — we currently only deliver within South Africa and can't process orders shipped elsewhere.
+      </div>
       <div class="f2">
         <div class="frow">
           <label>Email <span class="req">*</span></label>
@@ -790,7 +800,7 @@
         <label>Order notes (optional)</label>
         <textarea name="notes" placeholder="Any special instructions for your order?"></textarea>
       </div>
-      <button type="submit" class="pf-btn">Continue to secure payment →</button>
+      <button type="submit" class="pf-btn" id="order-submit-btn">Continue to secure payment →</button>
     </form>
     <p class="modal-note">🔒 Secure checkout via PayFast · South African Rands (ZAR) · SSL encrypted</p>
   </div>
@@ -1003,8 +1013,19 @@ function showToast(msg) {
 function openCheckout() {
   if (cart.length === 0) { alert('Your cart is empty — add a product first.'); return; }
   renderCartItems();
+  checkCountry();
   document.getElementById('checkout-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+// ── COUNTRY GUARDRAIL: block checkout at the form if not South Africa ──
+function checkCountry() {
+  var isSA = document.getElementById('f-country').value === 'South Africa';
+  document.getElementById('country-block-msg').style.display = isSA ? 'none' : 'block';
+  var btn = document.getElementById('order-submit-btn');
+  btn.disabled = !isSA;
+  btn.style.opacity = isSA ? '1' : '0.5';
+  btn.style.cursor = isSA ? 'pointer' : 'not-allowed';
 }
 
 function closeCheckout() {
@@ -1069,6 +1090,10 @@ function handleOrder(e) {
   e.preventDefault();
 
   if (cart.length === 0) { alert('Your cart is empty.'); return; }
+  if (document.getElementById('f-country').value !== 'South Africa') {
+    alert('Sorry — we currently only deliver within South Africa and can\'t process this order.');
+    return;
+  }
 
   var name    = document.getElementById('f-name').value.trim();
   var email   = document.getElementById('f-email').value.trim();
