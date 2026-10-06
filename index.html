@@ -401,7 +401,7 @@
         <div class="product-name">Bifocal Stick-On Lenses</div>
         <p class="product-desc">Turn any glasses into reading glasses instantly. Hydrophilic technology sticks to the inside of your lens — works on sunglasses, ski goggles, safety specs and more.</p>
         <div class="str-label">Available strengths</div>
-        <div class="pills"><span class="pill">+1.50</span><span class="pill">+2.00</span><span class="pill">+2.50</span><span class="pill">+3.00</span></div>
+        <div class="pills"><span class="pill pill-soldout">+1.50</span><span class="pill">+2.00</span><span class="pill">+2.50</span><span class="pill">+3.00</span></div>
         <div class="product-footer">
           <div class="product-price">R229</div>
           <button class="buy-btn" onclick="openModal('Bifocal Stick-On Lenses',229,'bifocal')">Buy Now</button>
@@ -856,7 +856,7 @@ function isOutlyingCity(cityStr) {
 
 // ── PRODUCT DEFINITIONS ──
 var products = {
-  bifocal: { name:'Bifocal Stick-On Lenses', price:229, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false, soldOut:[] },
+  bifocal: { name:'Bifocal Stick-On Lenses', price:229, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false, soldOut:['+1.50'] },
   myopia:  { name:'Myopia Stick-On Lenses',  price:299, strengths:['-2.00','-2.50','-3.00','-3.50','-4.00','-5.00'], hasColour:false, soldOut:['-2.00'] },
   readers: { name:'Mobile Phone Readers',    price:199, strengths:['+1.00','+2.00','+3.00'], hasColour:true, soldOut:[] }
 };
