@@ -59,7 +59,7 @@
       "@type": "Offer",
       "name": "Bifocal Stick-On Lenses",
       "description": "Stick-on bifocal lenses that transform any glasses into reading glasses. Available in +1.50, +2.00, +2.50 and +3.00.",
-      "price": "229",
+      "price": "249",
       "priceCurrency": "ZAR",
       "availability": "https://schema.org/InStock",
       "url": "https://ezioptx.co.za/#bifocal"
@@ -68,7 +68,7 @@
       "@type": "Offer",
       "name": "Myopia Stick-On Lenses",
       "description": "Stick-on myopia lenses for nearsightedness. Available in -2.00 to -5.00.",
-      "price": "299",
+      "price": "329",
       "priceCurrency": "ZAR",
       "availability": "https://schema.org/InStock",
       "url": "https://ezioptx.co.za/#myopia"
@@ -403,8 +403,8 @@
         <div class="str-label">Available strengths</div>
         <div class="pills"><span class="pill pill-soldout">+1.50</span><span class="pill">+2.00</span><span class="pill">+2.50</span><span class="pill">+3.00</span></div>
         <div class="product-footer">
-          <div class="product-price">R229</div>
-          <button class="buy-btn" onclick="openModal('Bifocal Stick-On Lenses',229,'bifocal')">Buy Now</button>
+          <div class="product-price">R249</div>
+          <button class="buy-btn" onclick="openModal('Bifocal Stick-On Lenses',249,'bifocal')">Buy Now</button>
         </div>
       </div>
     </div>
@@ -420,8 +420,8 @@
         <div class="str-label">Available strengths</div>
         <div class="pills"><span class="pill pill-soldout">-2.00</span><span class="pill">-2.50</span><span class="pill">-3.00</span><span class="pill">-3.50</span><span class="pill">-4.00</span><span class="pill">-5.00</span></div>
         <div class="product-footer">
-          <div class="product-price">R299</div>
-          <button class="buy-btn" onclick="openModal('Myopia Stick-On Lenses',299,'myopia')">Buy Now</button>
+          <div class="product-price">R329</div>
+          <button class="buy-btn" onclick="openModal('Myopia Stick-On Lenses',329,'myopia')">Buy Now</button>
         </div>
       </div>
     </div>
@@ -731,7 +731,7 @@
 
     <!-- FREE GIFT (spring promotion) -->
     <div id="gift-block" style="display:none;background:var(--blue-pale);border:1px solid var(--border);border-radius:5px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;">🎁 You've unlocked a free pair of Red Mobile Phone Readers (orders over R495)!</div>
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;">🎁 You've unlocked a free pair of Red Mobile Phone Readers (orders over R500)!</div>
       <label style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:5px;">Choose your strength</label>
       <select id="gift-diopter" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:13px;color:var(--ink);background:#fff;"></select>
     </div>
@@ -818,7 +818,7 @@
 // To end the promotion (once red reader stock runs out), just set PROMO_ACTIVE to false.
 // This one flag controls the announcement bar text AND the free-gift checkout logic below.
 var PROMO_ACTIVE = true;
-var PROMO_THRESHOLD = 495; // separate from the R395 free-delivery threshold — gift only unlocks on bigger baskets
+var PROMO_THRESHOLD = 500; // separate from the R395 free-delivery threshold — gift only unlocks on bigger baskets
 var PROMO_GIFT_STRENGTHS = ['+1.00', '+2.00', '+3.00'];
 
 // ── OUTLYING AREA COURIER SURCHARGE ──
@@ -856,8 +856,8 @@ function isOutlyingCity(cityStr) {
 
 // ── PRODUCT DEFINITIONS ──
 var products = {
-  bifocal: { name:'Bifocal Stick-On Lenses', price:229, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false, soldOut:['+1.50'] },
-  myopia:  { name:'Myopia Stick-On Lenses',  price:299, strengths:['-2.00','-2.50','-3.00','-3.50','-4.00','-5.00'], hasColour:false, soldOut:['-2.00'] },
+  bifocal: { name:'Bifocal Stick-On Lenses', price:249, strengths:['+1.50','+2.00','+2.50','+3.00'], hasColour:false, soldOut:['+1.50'] },
+  myopia:  { name:'Myopia Stick-On Lenses',  price:329, strengths:['-2.00','-2.50','-3.00','-3.50','-4.00','-5.00'], hasColour:false, soldOut:['-2.00'] },
   readers: { name:'Mobile Phone Readers',    price:199, strengths:['+1.00','+2.00','+3.00'], hasColour:true, soldOut:[] }
 };
 
@@ -1073,7 +1073,7 @@ function initPromo() {
   if (!PROMO_ACTIVE) return;
   var bar = document.getElementById('ann-bar');
   if (bar) {
-    bar.innerHTML = 'Spring offer: free courier delivery on orders over R395, plus a free pair of Red Mobile Phone Readers on orders over R495.* <a href="#products">Shop now →</a>';
+    bar.innerHTML = 'Spring offer: free courier delivery on orders over R395, plus a free pair of Red Mobile Phone Readers on orders over R500.* <a href="#products">Shop now →</a>';
   }
 }
 initPromo();
