@@ -786,10 +786,25 @@
         <label>Suburb <span class="req">*</span></label>
         <input type="text" name="suburb" id="f-suburb" required placeholder="Suburb">
       </div>
+      <div class="frow">
+        <label>City / Town <span class="req">*</span></label>
+        <input type="text" name="city" id="f-city" required placeholder="City or town" onchange="renderCartItems()">
+      </div>
       <div class="f2">
         <div class="frow">
-          <label>City / Town <span class="req">*</span></label>
-          <input type="text" name="city" id="f-city" required placeholder="City or town" oninput="renderCartItems()">
+          <label>Province <span class="req">*</span></label>
+          <select name="province" id="f-province" required onchange="renderCartItems()">
+            <option value="" selected disabled>Select province</option>
+            <option value="Eastern Cape">Eastern Cape</option>
+            <option value="Free State">Free State</option>
+            <option value="Gauteng">Gauteng</option>
+            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+            <option value="Limpopo">Limpopo</option>
+            <option value="Mpumalanga">Mpumalanga</option>
+            <option value="North West">North West</option>
+            <option value="Northern Cape">Northern Cape</option>
+            <option value="Western Cape">Western Cape</option>
+          </select>
         </div>
         <div class="frow">
           <label>Postal code <span class="req">*</span></label>
@@ -830,34 +845,144 @@ var PROMO_GIFT_STRENGTHS = ['+1.00', '+2.00', '+3.00'];
 // ── OUTLYING AREA COURIER SURCHARGE ──
 // Permanent pricing fix (not part of the seasonal promo) — courier costs to outlying towns run well above
 // the R99 standard fee (e.g. Hoedspruit actually cost R206). This adds an automatic surcharge for any
-// city/town NOT in MAIN_CENTRES below. Review and edit this list — you know your courier's actual rate
-// card better than this default does. Matching is loose (partial match, case-insensitive) to tolerate
-// how people actually type their town.
+// city/town that is NOT a main centre. Review and edit the list below — you know your courier's actual rate
+// card better than this default does.
+//
+// How the decision is made (classifyDelivery below):
+//  1. The typed city is tidied up (case, punctuation, accents) and matched against the main-centre list,
+//     allowing for shorthand (Joburg, CPT, Plett) and small typos (Johanesburg, Cape Twon).
+//  2. The province the customer selected is a second check: if the city is a main centre but sits in a
+//     different province, the customer is asked to check it and the order email is flagged for you.
+//  3. If no main centre matches, the surcharge applies — and if the city is close to a main centre name the
+//     customer is offered a one-tap "Did you mean ...?" correction.
 var OUTLYING_SURCHARGE_ACTIVE = true;
 var OUTLYING_SURCHARGE = 110; // covers the ~R107 shortfall seen on the Hoedspruit order, plus a small buffer
-var MAIN_CENTRES = [
-  // Confirmed via actual Fastway rate lookups (LOC/ISH/SHP/LMC service levels) — 17 Aug 2026 test batch
-  'johannesburg','sandton','pretoria','centurion','vereeniging','cape town','stellenbosch',
-  'george','knysna','durban','pietermaritzburg','richards bay','bloemfontein','welkom',
-  'polokwane','louis trichardt','nelspruit','mbombela','witbank','rustenburg','klerksdorp',
-  'potchefstroom','plettenberg bay','mossel bay','jeffreys bay','port elizabeth','gqeberha','east london',
-  // Not individually tested, but same metro/postal region as a confirmed town above
-  'joburg','randburg','roodepoort','midrand','tshwane','germiston','benoni','boksburg',
-  'kempton park','edenvale','alberton','vanderbijlpark','bellville','durbanville',
-  'somerset west','paarl','umhlanga','pinetown','emalahleni'
-  // NOTE: Port Elizabeth/Gqeberha and East London added based on real invoice experience and industry
-  // reference sources, overriding what the API test batch showed (East London tested as outlying/HRK;
-  // PE failed to geocode). Deliberate call: err toward treating borderline towns as main centres rather
-  // than risk surprising a genuine main-centre customer with a surcharge at checkout — a false "outlying"
-  // is worse for the business than the occasional underpriced delivery.
-  // Soweto and Worcester were TESTED and clearly came back as outlying (HRK tier) — left OFF this list.
-  // Uitenhage and Queenstown are still unconfirmed and default to outlying until there's real order data.
-];
-function isOutlyingCity(cityStr) {
-  if (!OUTLYING_SURCHARGE_ACTIVE) return false;
-  var c = (cityStr || '').trim().toLowerCase();
-  if (!c) return false; // don't guess before they've typed a city
-  return !MAIN_CENTRES.some(function(mc){ return c.indexOf(mc) > -1 || mc.indexOf(c) > -1; });
+
+// Main centres grouped by province.
+// Confirmed via actual Fastway rate lookups (17 Aug 2026 test batch): johannesburg, sandton, pretoria, centurion,
+// vereeniging, cape town, stellenbosch, george, knysna, durban, pietermaritzburg, richards bay, bloemfontein,
+// welkom, polokwane, louis trichardt, nelspruit, mbombela, witbank, rustenburg, klerksdorp, potchefstroom,
+// plettenberg bay, mossel bay, jeffreys bay. The rest are in the same metro/postal region as a confirmed town.
+// NOTE: Port Elizabeth/Gqeberha and East London are included based on real invoice experience and industry
+// reference sources, overriding the API test batch (East London tested as outlying/HRK; PE failed to geocode).
+// Deliberate call: err toward treating borderline towns as main centres rather than risk surprising a genuine
+// main-centre customer with a surcharge at checkout.
+// Soweto and Worcester were TESTED and clearly came back as outlying (HRK tier) — deliberately left OFF.
+// Uitenhage and Queenstown are still unconfirmed and default to outlying until there's real order data.
+var MAIN_CENTRES_BY_PROVINCE = {
+  'Gauteng': ['johannesburg','sandton','pretoria','centurion','vereeniging','randburg','roodepoort','midrand',
+              'germiston','benoni','boksburg','kempton park','edenvale','alberton','vanderbijlpark'],
+  'Western Cape': ['cape town','stellenbosch','george','knysna','plettenberg bay','mossel bay','bellville',
+                   'durbanville','somerset west','paarl'],
+  'KwaZulu-Natal': ['durban','pietermaritzburg','richards bay','umhlanga','pinetown'],
+  'Free State': ['bloemfontein','welkom'],
+  'Limpopo': ['polokwane','louis trichardt'],
+  'Mpumalanga': ['nelspruit','mbombela','witbank','emalahleni'],
+  'North West': ['rustenburg','klerksdorp','potchefstroom'],
+  'Eastern Cape': ['jeffreys bay','port elizabeth','gqeberha','east london']
+};
+// Shorthand people commonly type -> the main centre it means
+var CITY_ALIASES = {
+  'joburg':'johannesburg', 'jhb':'johannesburg', 'tshwane':'pretoria', 'pta':'pretoria',
+  'cpt':'cape town', 'plett':'plettenberg bay', 'plettenberg':'plettenberg bay', 'pe':'port elizabeth',
+  'bloem':'bloemfontein', 'dbn':'durban', 'pmb':'pietermaritzburg', 'maritzburg':'pietermaritzburg',
+  'kempton':'kempton park', 'mossel':'mossel bay', 'jeffreys':'jeffreys bay'
+};
+
+var MAIN_LOOKUP = [];
+Object.keys(MAIN_CENTRES_BY_PROVINCE).forEach(function(prov){
+  MAIN_CENTRES_BY_PROVINCE[prov].forEach(function(n){
+    MAIN_LOOKUP.push({ name: n, prov: prov, display: n.replace(/\b\w/g, function(ch){ return ch.toUpperCase(); }) });
+  });
+});
+
+function normCity(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function editDistance(a, b) {
+  var m = a.length, n = b.length, prev = [], cur = [], i, j;
+  for (j = 0; j <= n; j++) prev[j] = j;
+  for (i = 1; i <= m; i++) {
+    cur = [i];
+    for (j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+function findMainCentre(name) {
+  for (var i = 0; i < MAIN_LOOKUP.length; i++) { if (MAIN_LOOKUP[i].name === name) return MAIN_LOOKUP[i]; }
+  return null;
+}
+// Returns { outlying, match, fuzzy, mismatch, suggestion }
+function classifyDelivery(cityStr, provinceStr) {
+  var res = { outlying: false, match: null, fuzzy: false, mismatch: false, suggestion: null };
+  if (!OUTLYING_SURCHARGE_ACTIVE) return res;
+  var c = normCity(cityStr);
+  if (!c) return res; // nothing typed yet — don't guess
+  var found = null, fuzzy = false, i;
+
+  // 1a. shorthand (whole entry, or a distinctive word such as "Joburg South")
+  var words = c.split(' ');
+  for (i = 0; i < words.length && !found; i++) {
+    if (CITY_ALIASES[words[i]] && (words[i].length >= 4 || c === words[i])) found = findMainCentre(CITY_ALIASES[words[i]]);
+  }
+  if (!found) {
+    var compact = c.replace(/ /g, '');
+    if (compact.length <= 4 && CITY_ALIASES[compact]) found = findMainCentre(CITY_ALIASES[compact]); // e.g. "P.E."
+  }
+  // 1b. a main-centre name appearing as whole words ("Sandton, Johannesburg", "Cape Town CBD"); longest names first
+  if (!found) {
+    var padded = ' ' + c + ' ';
+    var byLength = MAIN_LOOKUP.slice().sort(function(a, b){ return b.name.length - a.name.length; });
+    for (i = 0; i < byLength.length; i++) {
+      if (padded.indexOf(' ' + byLength[i].name + ' ') > -1) { found = byLength[i]; break; }
+    }
+  }
+  // 1c. typos: same first letter and a small edit distance
+  if (!found) {
+    var best = null, bestD = 99;
+    MAIN_LOOKUP.forEach(function(e){
+      if (c.charAt(0) !== e.name.charAt(0)) return;
+      var d = editDistance(c, e.name);
+      var maxD = e.name.length >= 9 ? 2 : (e.name.length >= 5 ? 1 : 0);
+      if (d <= maxD && d < bestD) { best = e; bestD = d; }
+    });
+    if (best) { found = best; fuzzy = true; }
+  }
+
+  if (found) {
+    res.match = found; res.fuzzy = fuzzy;
+    if (provinceStr && provinceStr !== found.prov) res.mismatch = true; // second check: province disagrees
+    return res; // main centre — no surcharge
+  }
+
+  // 2. Not a main centre -> surcharge, with a "did you mean" hint if it's close to one
+  res.outlying = true;
+  if (c.length >= 4) {
+    var sug = null, sugD = 99;
+    MAIN_LOOKUP.forEach(function(e){
+      if (c.charAt(0) !== e.name.charAt(0)) return;
+      var d = editDistance(c, e.name);
+      var maxS = e.name.length >= 9 ? 3 : (e.name.length >= 6 ? 2 : 1);
+      var tie = (d === sugD && sug && e.prov === provinceStr && sug.prov !== provinceStr);
+      if (d <= maxS && (d < sugD || tie)) { sug = e; sugD = d; }
+    });
+    if (sug) res.suggestion = sug;
+  }
+  return res;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; });
+}
+// One-tap fix for the "Did you mean ...?" hint
+function useCitySuggestion(display, prov) {
+  document.getElementById('f-city').value = display;
+  var sel = document.getElementById('f-province');
+  if (sel && !sel.value) sel.value = prov;
+  renderCartItems();
 }
 
 // ── PRODUCT DEFINITIONS ──
@@ -1052,7 +1177,9 @@ function renderCartItems() {
   var total = cartTotal();
   var courier = total >= 395 ? 0 : 99;
   var cityVal = document.getElementById('f-city') ? document.getElementById('f-city').value : '';
-  var outlying = isOutlyingCity(cityVal);
+  var provVal = document.getElementById('f-province') ? document.getElementById('f-province').value : '';
+  var cls = classifyDelivery(cityVal, provVal);
+  var outlying = cls.outlying;
   var surcharge = outlying ? OUTLYING_SURCHARGE : 0;
   var grand = total + courier + surcharge;
   document.getElementById('cart-total').textContent = 'R' + grand.toFixed(2);
@@ -1060,7 +1187,15 @@ function renderCartItems() {
   var n = document.getElementById('cart-del-note');
   if (courier === 0) { n.innerHTML = '✓ Free courier delivery included!'; n.style.color = '#166534'; }
   else { n.innerHTML = 'Includes R99 courier fee &nbsp;·&nbsp; Add R' + (395 - total).toFixed(0) + ' more for free courier delivery.'; n.style.color = '#6b7f90'; }
-  if (outlying) { n.innerHTML += '<br>+ R' + OUTLYING_SURCHARGE.toFixed(0) + ' outlying area delivery surcharge (based on ' + cityVal.trim() + ')'; }
+  if (outlying) {
+    n.innerHTML += '<br>+ R' + OUTLYING_SURCHARGE.toFixed(0) + ' outlying area delivery surcharge (based on ' + escapeHtml(cityVal.trim()) + ')';
+    if (cls.suggestion) {
+      n.innerHTML += '<br><span style="color:#92400e;">Did you mean <a href="#" onclick="useCitySuggestion(\'' + cls.suggestion.display + '\',\'' + cls.suggestion.prov + '\');return false;" style="color:#92400e;font-weight:600;">' + cls.suggestion.display + '</a>? Tap to correct it.</span>';
+    }
+  }
+  if (cls.mismatch) {
+    n.innerHTML += '<br><span style="color:#92400e;">⚠️ ' + cls.match.display + ' is in ' + cls.match.prov + ' — please check the province you selected.</span>';
+  }
 
   // ── FREE GIFT (seasonal promotion) ──
   var giftBlock = document.getElementById('gift-block');
@@ -1109,14 +1244,16 @@ function handleOrder(e) {
   var city    = document.getElementById('f-city').value.trim();
   var postal  = document.getElementById('f-postal').value.trim();
 
-  if (!name || !email || !phone || !address || !city || !postal) {
+  var province = document.getElementById('f-province').value;
+  if (!name || !email || !phone || !address || !city || !province || !postal) {
     alert('Please fill in all required delivery fields marked with *');
     return;
   }
 
   var total      = cartTotal();
   var courier    = total >= 395 ? 0 : 99;
-  var outlying   = isOutlyingCity(city);
+  var cls        = classifyDelivery(city, province);
+  var outlying   = cls.outlying;
   var surcharge  = outlying ? OUTLYING_SURCHARGE : 0;
   var grandTotal = total + courier + surcharge;
 
@@ -1162,6 +1299,7 @@ function handleOrder(e) {
   var suburb   = document.getElementById('f-suburb') ? document.getElementById('f-suburb').value.trim() : '';
   var city2    = document.getElementById('f-city').value.trim();
   var postal2  = document.getElementById('f-postal').value.trim();
+  var province2 = document.getElementById('f-province').value;
   var notes    = document.querySelector('[name="notes"]') ? document.querySelector('[name="notes"]').value.trim() : '';
 
   var cartSummary = cart.map(function(i){
@@ -1181,7 +1319,8 @@ function handleOrder(e) {
     '📍 Address 1': address,
     '📍 Address 2': address2 || '-',
     '🏘️ Suburb': suburb || '-',
-    '🌆 City': city2 + (outlying ? ' (⚠️ OUTLYING — R' + surcharge.toFixed(2) + ' surcharge applied)' : ''),
+    '🌆 City': city2 + (cls.fuzzy ? ' (read as ' + cls.match.display + ', a main centre)' : '') + (outlying ? ' (⚠️ OUTLYING — R' + surcharge.toFixed(2) + ' surcharge applied)' : ''),
+    '🗺️ Province': province2 + (cls.mismatch ? ' (⚠️ CHECK ADDRESS: ' + cls.match.display + ' is in ' + cls.match.prov + ')' : ''),
     '📮 Postal Code': postal2,
     '📝 Notes': notes || '-'
   };
