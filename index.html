@@ -842,6 +842,64 @@ var PROMO_ACTIVE = PROMO_ENABLED && (!PROMO_FINAL_END || new Date() < PROMO_FINA
 var PROMO_THRESHOLD = 495; // separate from the R395 free-delivery threshold — qualifies: 2 bifocals, bifocal+myopia, 2 myopia, myopia+reader
 var PROMO_GIFT_STRENGTHS = ['+1.00', '+2.00', '+3.00'];
 
+// ── PAYFAST SECURITY SIGNATURE ──
+// PayFast now rejects checkout requests that arrive without a signature ("400 Bad Request: The signature
+// field is required"). The signature is an MD5 fingerprint of the payment details, built the way PayFast's
+// documentation describes: fields in PayFast's own order, empty ones left out, values URL-encoded,
+// and your passphrase added on the end if you have set one.
+//
+// PAYFAST_PASSPHRASE: leave as '' if your PayFast account has NO "Salt Passphrase" set (PayFast dashboard ->
+// Settings -> Account Information). If you do have one, it must be entered here EXACTLY, or PayFast will
+// reject the payment with "Generated signature does not match submitted signature".
+var PAYFAST_PASSPHRASE = '';
+var PAYFAST_SIGNATURE_ORDER = ['merchant_id','merchant_key','return_url','cancel_url','notify_url','name_first',
+  'name_last','email_address','cell_number','m_payment_id','amount','item_name','item_description'];
+
+function pfEncode(v) {
+  // Matches PHP's urlencode(): spaces become +, and everything except letters, digits and - _ . is %-encoded
+  return encodeURIComponent(String(v).trim()).replace(/%20/g, '+')
+    .replace(/[!'()*~]/g, function(ch){ return '%' + ch.charCodeAt(0).toString(16).toUpperCase(); });
+}
+function payfastSignature(fields) {
+  var parts = [];
+  PAYFAST_SIGNATURE_ORDER.forEach(function(k){
+    if (fields[k] !== undefined && String(fields[k]).trim() !== '') parts.push(k + '=' + pfEncode(fields[k]));
+  });
+  var str = parts.join('&');
+  if (PAYFAST_PASSPHRASE) str += '&passphrase=' + pfEncode(PAYFAST_PASSPHRASE);
+  return md5hex(str);
+}
+// Compact MD5 (the string passed in is always plain ASCII because it has been URL-encoded first)
+function md5hex(s) {
+  var i, K = [], S = [7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+                      4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  for (i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) | 0;
+  var bytes = [];
+  for (i = 0; i < s.length; i++) bytes.push(s.charCodeAt(i) & 0xFF);
+  var bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  for (i = 0; i < 8; i++) bytes.push(i < 4 ? (bitLen >>> (8 * i)) & 0xFF : 0);
+  var a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476;
+  for (var off = 0; off < bytes.length; off += 64) {
+    var M = [];
+    for (i = 0; i < 16; i++) M[i] = bytes[off+i*4] | (bytes[off+i*4+1] << 8) | (bytes[off+i*4+2] << 16) | (bytes[off+i*4+3] << 24);
+    var A = a0, B = b0, C = c0, D = d0, F, g;
+    for (i = 0; i < 64; i++) {
+      if (i < 16)      { F = (B & C) | (~B & D); g = i; }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D;          g = (3 * i + 5) % 16; }
+      else             { F = C ^ (B | ~D);       g = (7 * i) % 16; }
+      F = (F + A + K[i] + M[g]) | 0;
+      A = D; D = C; C = B;
+      B = (B + ((F << S[i]) | (F >>> (32 - S[i])))) | 0;
+    }
+    a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+  }
+  function hex(n) { var h = ''; for (var j = 0; j < 4; j++) h += ('0' + ((n >>> (8 * j)) & 0xFF).toString(16)).slice(-2); return h; }
+  return hex(a0) + hex(b0) + hex(c0) + hex(d0);
+}
+
 // ── OUTLYING AREA COURIER SURCHARGE ──
 // Permanent pricing fix (not part of the seasonal promo) — courier costs to outlying towns run well above
 // the R99 standard fee (e.g. Hoedspruit actually cost R206). This adds an automatic surcharge for any
@@ -1282,6 +1340,7 @@ function handleOrder(e) {
     email_address: email,
     cell_number:   phone
   };
+  fields.signature = payfastSignature(fields); // PayFast rejects the payment without this
 
   Object.keys(fields).forEach(function(key) {
     var input = document.createElement('input');
